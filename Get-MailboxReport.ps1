@@ -336,12 +336,18 @@ foreach ($mb in $mailboxes)
         $userObj | Add-Member NoteProperty -Name "Issue Warning Quota" -Value $primarydb.IssueWarningQuota
         $userObj | Add-Member NoteProperty -Name "Prohibit Send Quota" -Value $primarydb.ProhibitSendQuota
         $userObj | Add-Member NoteProperty -Name "Prohibit Send Receive Quota" -Value $primarydb.ProhibitSendReceiveQuota
+	
+	$tmp = [INT](($stats.TotalItemSize.Value.ToMB() / $primarydb.ProhibitSendQuota.Value.ToMB()) * 100)
+	$userObj | Add-Member NoteProperty -Name "Percentage Used" -Value $tmp
     }
     elseif ($mb.UseDatabaseQuotaDefaults -eq $false)
     {
         $userObj | Add-Member NoteProperty -Name "Issue Warning Quota" -Value $mb.IssueWarningQuota
         $userObj | Add-Member NoteProperty -Name "Prohibit Send Quota" -Value $mb.ProhibitSendQuota
         $userObj | Add-Member NoteProperty -Name "Prohibit Send Receive Quota" -Value $mb.ProhibitSendReceiveQuota
+	
+	$tmp = [INT](($stats.TotalItemSize.Value.ToMB() / $mb.ProhibitSendQuota.Value.ToMB()) * 100)
+	$userObj | Add-Member NoteProperty -Name "Percentage Used" -Value $tmp
     }
 
 	$userObj | Add-Member NoteProperty -Name "Account Enabled" -Value $aduser.Enabled
@@ -390,8 +396,9 @@ else
 if ($SendEmail)
 {
 
-    $topmailboxeshtml = $report | Sort "Total Mailbox Size (Mb)" -Desc | Select -First $top | Select DisplayName,Title,Department,Office,"Total Mailbox Size (Mb)" | ConvertTo-Html -Fragment
-
+    #$topmailboxeshtml = $report | Sort "Total Mailbox Size (Mb)" -Desc | Select -First $top | Select DisplayName,Title,Department,Office,"Total Mailbox Size (Mb)" | ConvertTo-Html -Fragment
+    $topmailboxeshtml = $report | Sort "Percentage Used" -Desc | Select -First $top | Select DisplayName,"Mailbox Type","Last Mailbox Logon","Mailbox Items","Mailbox Size (Mb)","Prohibit Send Quota","Prohibit Send Receive Quota","Total Mailbox Size (Mb)","Percentage Used" | ConvertTo-Html -Fragment
+    
     $reporthtml = $report | ConvertTo-Html -Fragment
 
 	$htmlhead="<html>
